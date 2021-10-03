@@ -1,13 +1,12 @@
 ﻿using System.IO;
 using System.IO.Compression;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace ExcelProtectionRemover.Process
 {
     public class FileProcessor
     {
-        public async Task<string> Process(string fileFullPath)
+        public string Process(string fileFullPath)
         {
             var convertedFileFullPath = CreateConvertedFileFullPath(fileFullPath);
 

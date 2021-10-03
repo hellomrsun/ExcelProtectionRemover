@@ -30,7 +30,7 @@ namespace ExcelProtectionRemover
             Task.Run(() =>
             {
                  var processor = new FileProcessor();
-                 var result = processor.Process(fileFullPath);
+                 processor.Process(fileFullPath);
             }).ContinueWith(x =>
             {
                 MessageBox.Show("The file is converted!");

@@ -4,6 +4,9 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net5.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <Authors>Jiangong SUN</Authors>
+    <Company>Jiangong SUN</Company>
+    <Product>Jiangong SUN</Product>
   </PropertyGroup>
 
 </Project>

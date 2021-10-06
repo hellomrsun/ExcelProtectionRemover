@@ -24,16 +24,16 @@ namespace ExcelProtectionRemover
             FileNameTbx.Text = file.FileName;
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void RemoveExcelProtectionButton_Click(object sender, RoutedEventArgs e)
         {
             var fileFullPath = FileNameTbx.Text;
             Task.Run(() =>
             {
-                 var processor = new FileProcessor();
+                 var processor = new ExcelFileProcessor();
                  processor.Process(fileFullPath);
             }).ContinueWith(x =>
             {
-                MessageBox.Show("The file is converted!");
+                MessageBox.Show("The excel file's protection is converted!");
             });
         }
     }

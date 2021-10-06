@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace ExcelProtectionRemover.Process
 {
-    public class FileProcessor
+    public class ExcelFileProcessor
     {
         public string Process(string fileFullPath)
         {
@@ -16,29 +16,32 @@ namespace ExcelProtectionRemover.Process
 
             var zipFolderName = ExtractZipFile(zipFileFullPath);
 
-            RemoveSheetProtection(zipFolderName, zipFileFullPath);
+            RemoveExcelSheetsProtection(zipFolderName, zipFileFullPath);
 
             RemoveAllFilesAndFoldersFromFolder(zipFolderName);
 
             convertedFileFullPath = Path.ChangeExtension(zipFileFullPath, ".xlsx");
 
-            RemoveFile(convertedFileFullPath);
+            TryRemoveFile(convertedFileFullPath);
 
             File.Move(zipFileFullPath, convertedFileFullPath);
 
             return convertedFileFullPath;
         }
 
-        private static void RemoveSheetProtection(string zipFolderName, string zipFileFullPath)
+        private static void RemoveExcelSheetsProtection(string zipFolderName, string zipFileFullPath)
         {
-            var sheet1FilePath = Path.Combine(zipFolderName, @"xl\worksheets", "sheet1.xml");
-            var allContents = File.ReadAllText(sheet1FilePath);
+            var folder = Path.Combine(zipFolderName, @"xl\worksheets");
+            var files = Directory.GetFiles(folder);
 
-            var regex = new Regex("<sheetProtection[a-zA-Z0-9/ -=\"]+\\/>");
-            var newAllContents = regex.Replace(allContents, "");
-
-            File.WriteAllText(sheet1FilePath, newAllContents);
-
+            foreach (var filePath in files)
+            {
+                var allContents = File.ReadAllText(filePath);
+                var regex = new Regex("<sheetProtection[a-zA-Z0-9/ -=\"]+\\/>");
+                var newAllContents = regex.Replace(allContents, "");
+                File.WriteAllText(filePath, newAllContents);
+            }
+            
             ZipFile.CreateFromDirectory(zipFolderName, zipFileFullPath);
         }
 
@@ -56,26 +59,24 @@ namespace ExcelProtectionRemover.Process
 
         private static void RemoveAllFilesAndFoldersFromFolder(string zipFolderName)
         {
-            if (Directory.Exists(zipFolderName))
-            {
-                var directory = new DirectoryInfo(zipFolderName);
-                foreach (var file in directory.GetFiles()) file.Delete();
-                foreach (var subDirectory in directory.GetDirectories()) subDirectory.Delete(true);
-                Directory.Delete(zipFolderName);
-            }
+            if (!Directory.Exists(zipFolderName)) return;
+            var directory = new DirectoryInfo(zipFolderName);
+            foreach (var file in directory.GetFiles()) file.Delete();
+            foreach (var subDirectory in directory.GetDirectories()) subDirectory.Delete(true);
+            Directory.Delete(zipFolderName);
         }
 
         private static string RenameFileToZipFile(string convertedFileFullPath)
         {
             var zipFileFullPath = Path.ChangeExtension(convertedFileFullPath, ".zip");
 
-            RemoveFile(zipFileFullPath);
+            TryRemoveFile(zipFileFullPath);
 
             File.Move(convertedFileFullPath, zipFileFullPath);
             return zipFileFullPath;
         }
 
-        private static void RemoveFile(string zipFileFullPath)
+        private static void TryRemoveFile(string zipFileFullPath)
         {
             if (File.Exists(zipFileFullPath))
             {
@@ -85,18 +86,14 @@ namespace ExcelProtectionRemover.Process
 
         private static string CreateConvertedFileFullPath(string fileFullPath)
         {
-            var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileFullPath);
-            var newFileName = fileNameWithoutExtension + "_Converted";
+            var newFileName = Path.GetFileNameWithoutExtension(fileFullPath) + "_ProtectionRemoved";
             var excelFile = new FileInfo(fileFullPath);
             return Path.Combine(excelFile.DirectoryName, newFileName + excelFile.Extension);
         }
 
         private static void CopyFileToConverted(string oldFileFullPath, string newFileFullPath)
         {
-            if (File.Exists(newFileFullPath))
-            {
-                File.Delete(newFileFullPath);
-            }
+            TryRemoveFile(newFileFullPath);
 
             File.Copy(oldFileFullPath, newFileFullPath);
         }
